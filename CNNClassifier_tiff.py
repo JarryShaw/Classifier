@@ -1,42 +1,40 @@
 import tensorflow as tf
-import sys
-
 from tiffReader import *
 
 
-ModelPath = "./tiff_CNN"
+ModelPath = "./tiff_CNN_3"
 
 TrainRate = 0.8
 
 # 输入为[批大小，宽度，高度，深度]
 # -1代表自动处理当前大小
-INPUTSHAPE = [-1, 960, 720, 4]  # 输入形状
+INPUTSHAPE = [-1, 96, 72, 1]  # 输入形状
 
-# 第一层卷积层输入形状为[批大小, 960, 720, 4]
-# 第一层卷积层输出形状为[批大小, 960, 720, 32]
+# 第一层卷积层输入形状为[批大小, 96, 72, 1]
+# 第一层卷积层输出形状为[批大小, 96, 72, 32]
 FILTER1_NUM = 32  # 第一层滤波器数量
 FILTER1_SHAPE = [5, 5]  # 第一层滤波器形状
 
-# 第一层池化层输入形状为[批大小, 960, 720, 32]
-# 第一层池化层输出形状为[批大小, 96, 72, 32]
-POOL1_SHAPE = [10, 10]  # 第一层池化层形状
-POOL1_STRIDE = 10  # 第一层池化层步长
+# 第一层池化层输入形状为[批大小, 96, 72, 32]
+# 第一层池化层输出形状为[批大小, 48, 36, 32]
+POOL1_SHAPE = [2, 2]  # 第一层池化层形状
+POOL1_STRIDE = 2  # 第一层池化层步长
 
-# 第二层卷积层输入形状为[批大小, 96, 72, 32]
-# 第二层卷积层输出形状为[批大小, 96, 72, 64]
+# 第二层卷积层输入形状为[批大小, 48, 36, 32]
+# 第二层卷积层输出形状为[批大小, 48, 36, 64]
 FILTER2_NUM = 64  # 第二层滤波器数量
 FILTER2_SHAPE = [5, 5]  # 第二层滤波器形状
 
-# 第二层池化层输入形状为[批大小, 96, 72, 64]
-# 第二层池化层输出形状为[批大小, 24, 18, 64]
+# 第二层池化层输入形状为[批大小, 48, 36, 64]
+# 第二层池化层输出形状为[批大小, 12, 9, 64]
 POOL2_SHAPE = [4, 4]  # 第二层池化层形状
 POOL2_STRIDE = 4  # 第二层池化层步长
 
-# 展平前输入形状为[批大小, 24, 18, 64]
-# 展平后形状为[批大小, 24*18*64]
-FLAT_SHAPE = [-1, 24*18*64]  # 展平后形状
+# 展平前输入形状为[批大小, 12, 9, 64]
+# 展平后形状为[批大小, 12*9*64]
+FLAT_SHAPE = [-1, 12*9*64]  # 展平后形状
 
-# 全连接层输入形状为[批大小，24*18*64]
+# 全连接层输入形状为[批大小，12*9*64]
 # 全连接层输出个数为[批大小，1024]
 DENSE_UNIT = 1024  # 全连接层输出个数
 
@@ -160,7 +158,7 @@ def main(unused):
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={"packet": packets_train},
         y=labels_train,
-        batch_size=25,
+        batch_size=50,
         num_epochs=None,
         shuffle=True)
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -168,11 +166,12 @@ def main(unused):
         y=labels_eval,
         num_epochs=1,
         shuffle=False)
-    classifier.train(
-        input_fn=train_input_fn,
-        steps=1000,
-        hooks=[logging_hook])
-    eval_results = classifier.evaluate(input_fn=eval_input_fn)
+    for i in range(200):
+        classifier.train(
+            input_fn=train_input_fn,
+            steps=100,
+            hooks=[logging_hook])
+        eval_results = classifier.evaluate(input_fn=eval_input_fn)
     print(eval_results)
 
 

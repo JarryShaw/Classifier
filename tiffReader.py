@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import os
+from PIL import Image
 
 
-def ReadTiffData(path, rate=0.8):
+def ReadTiffData(path, rate=0.5):
     classes_path = [os.path.join(path, x) for x in os.listdir(path)]
     classes = [int(x.split('. ')[0]) for x in os.listdir(path)]
 
@@ -14,13 +14,15 @@ def ReadTiffData(path, rate=0.8):
     for e in range(len(classes_path)):
         files = [os.path.join(classes_path[e], x) for x in os.listdir(classes_path[e])]
         for i in range(len(files)):
-            tiff = plt.imread(files[i])
+            tiff = Image.open(files[i])
+            # tiff = tiff.resize((96, 72), Image.ANTIALIAS)
+            tiff = np.asarray(tiff, np.int32)
             if i < rate*len(files):
                 imgs_train.append(tiff)
-                labels_train.append(classes[e])
+                labels_train.append(classes[e]-1)
             else:
                 imgs_eval.append(tiff)
-                labels_eval.append(classes[e])
+                labels_eval.append(classes[e]-1)
 
     imgs_train = np.asarray(imgs_train, np.float32)
     labels_train = np.asarray(labels_train, np.int32)
@@ -35,5 +37,10 @@ def ReadTiffData(path, rate=0.8):
     np.random.shuffle(shuffle)
     imgs_eval = imgs_eval[shuffle]
     labels_eval = labels_eval[shuffle]
+
+    print(imgs_train.shape)
+    print(labels_train.shape)
+    print(imgs_eval.shape)
+    print(labels_eval.shape)
 
     return imgs_train, labels_train, imgs_eval, labels_eval
